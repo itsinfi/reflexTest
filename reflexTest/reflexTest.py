@@ -1,5 +1,62 @@
 from rxconfig import config
 import reflex as rx
+import asyncio
+
+"""Farb-Variablen"""
+primaryBackgroundColor = 'indigo'
+secondaryBackgroundColor = 'yellow'
+primaryTextColor = 'white'
+secondaryTextColor = 'black'
+
+
+"""Card Komponente"""
+def Card(*children: rx.Component, **props: any) -> rx.Component:
+    return  rx.container(
+                rx.center(
+                    rx.vstack(
+                        *children,
+                        align='center',
+                    )
+                ),
+                width='calc(100% - 100px)',
+                size='4',
+                backgroundImage='linear-gradient(#272727, #111111)',
+                opacity="90%",
+                borderRadius='30px',
+                boxShadow='2px 2px 5px #00000055',
+                marginLeft='50px',
+                marginRight='50px',
+                marginBottom='50px',
+                padding='50px',
+                **props,
+            )
+
+
+
+
+#TODO: performance erhöhen (laggt manchmal extrem)
+class Clock(rx.State):
+    """Clock"""
+
+    hasStarted: bool = False
+    value: int = 0
+    
+    @rx.background
+    async def runClock(self):
+        while True:
+            async with self:
+                if not self.hasStarted:
+                    return
+                await asyncio.sleep(0.1)
+                self.value += 1
+    
+    """Stoppuhr"""
+    def toggleClock(self):
+        self.hasStarted = not self.hasStarted
+        if self.hasStarted:
+            self.value = 0
+            return Clock.runClock()
+
 
 
 class IndexState(rx.State):
@@ -17,64 +74,85 @@ class IndexState(rx.State):
     """Opacity mit Mouse movement ändern"""
     percent: float = 100
 
-    def stateTest2(self, isPositiveChange: bool):
-        if isPositiveChange:
-            self.percent += 1
-        else:
-            self.percent -= 100
+    def updateOpacity(self, isPositiveChange: bool):
+        # if isPositiveChange:
+        #     self.percent += 1
+        # else:
+        #     self.percent -= 100
         
         if self.percent < 0:
             self.percent = 0
         
         if self.percent > 100:
             self.percent = 100
-        
 
 
+
+
+"""Index Page"""
 
 def index() -> rx.Component:
-    return  rx.container(
-                rx.center(
-                    rx.vstack(
-                        rx.image(
-                            src='https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fstatic.vecteezy.com%2Fsystem%2Fresources%2Fpreviews%2F001%2F105%2F389%2Fnon_2x%2Fwireframe-landscape-banner-design-vector.jpg&f=1&nofb=1&ipt=9ad5dcdd927b90069c7c272e9dba352aa9d53e9d0a434efa3d0eb793f7b79ab5&ipo=images',
-                            width='100%',
-                            height='500px',
-                            objectFit='cover',
-                            borderRadius='30px',
-                            transform=rx.cond(IndexState.flipImage, 'scaleY(-1)', '')
-                        ),
-                        rx.text(
-                            'Are you enjoying this beautiful 80s scenery?',
-                            size='8',
-                            weight='bold',
-                            paddingBottom="1rem",
-                            paddingTop="2rem",
-                        ),
-                        rx.html(
-                            '<p style="font-style:italic;text-align:center;">\'Our beautiful wallpaper design encaptures vigilance combined with magnificence.\'<br>~Donald J. Trump, Founder of \'Make America Great Again\' (2023)</p>'
+    return  rx.vstack(
+                Card(
+                    rx.image(
+                        src='https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fstatic.vecteezy.com%2Fsystem%2Fresources%2Fpreviews%2F001%2F105%2F389%2Fnon_2x%2Fwireframe-landscape-banner-design-vector.jpg&f=1&nofb=1&ipt=9ad5dcdd927b90069c7c272e9dba352aa9d53e9d0a434efa3d0eb793f7b79ab5&ipo=images',
+                        width='100%',
+                        height='500px',
+                        objectFit='cover',
+                        borderRadius='30px',
+                        transform=rx.cond(IndexState.flipImage, 'scaleY(-1)', '')
+                    ),
+                    rx.text(
+                        'Are you enjoying this beautiful 80s scenery?',
+                        size='8',
+                        weight='bold',
+                        paddingBottom="1rem",
+                        paddingTop="2rem",
+                    ),
+                    rx.html(
+                        '<p style="font-style:italic;text-align:center;">\'Our beautiful wallpaper design encaptures vigilance combined with magnificence.\'<br>~Donald J. Trump, Founder of \'Make America Great Again\' (2023)</p>'
+                    ),
+                    rx.button(
+                        rx.cond(IndexState.isButton1, 'Buy', 'Sell'),
+                        size='4',
+                        marginTop="2rem",
+                        color=rx.cond(IndexState.isButton1, primaryTextColor, secondaryTextColor),
+                        backgroundColor=rx.cond(IndexState.isButton1, primaryBackgroundColor, secondaryBackgroundColor),
+                        on_click=IndexState.stateTest1,
+                    ),
+                    marginTop='50px'
+                ),
+                Card(
+                    rx.heading(
+                        f"{Clock.value}s",
+                        size='9',
+                        marginBottom='2rem',
+                    ),
+                    rx.cond(
+                        Clock.hasStarted,
+                        rx.button(
+                        'Stop',
+                        size = '3',
+                        backgroundColor=secondaryBackgroundColor,
+                        color=secondaryTextColor,
+                        on_click=Clock.toggleClock
                         ),
                         rx.button(
-                            rx.cond(IndexState.isButton1, 'Buy', 'Sell'),
-                            size='4',
-                            marginTop="2rem",
-                            color=rx.cond(IndexState.isButton1, 'white', 'black'),
-                            backgroundColor=rx.cond(IndexState.isButton1, 'indigo', 'yellow'),
-                            on_click=IndexState.stateTest1(),
+                        'Start',
+                        size = '3',
+                        backgroundColor=primaryBackgroundColor,
+                        color=primaryTextColor,
+                        on_click=Clock.toggleClock
                         ),
-                        align='center',
                     ),
                 ),
-                size='4',
-                backgroundImage='linear-gradient(#272727, #111111)',
                 opacity=f"{IndexState.percent}%",
-                borderRadius='30px',
-                boxShadow='2px 2px 5px #00000055',
-                margin='50px',
-                padding='50px',
-                on_mouse_leave=IndexState.stateTest2(False),
-                on_mouse_move=IndexState.stateTest2(True),
-            ),
+                on_mouse_leave=IndexState.updateOpacity(False),
+                on_mouse_move=IndexState.updateOpacity(True),
+            )
+
+
+"""App init"""
 
 app = rx.App(
     theme=rx.theme(
