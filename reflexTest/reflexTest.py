@@ -1,36 +1,9 @@
+from reflexTest.utils import u
+from reflexTest.prompting import p
+
 from rxconfig import config
 import reflex as rx
 import asyncio
-
-"""Farb-Variablen"""
-primaryBackgroundColor = 'indigo'
-secondaryBackgroundColor = 'yellow'
-primaryTextColor = 'white'
-secondaryTextColor = 'black'
-
-
-"""Card Komponente"""
-def Card(*children: rx.Component, **props: any) -> rx.Component:
-    return  rx.container(
-                rx.center(
-                    rx.vstack(
-                        *children,
-                        align='center',
-                    )
-                ),
-                width='calc(100% - 100px)',
-                size='4',
-                backgroundImage='linear-gradient(#272727, #111111)',
-                opacity="90%",
-                borderRadius='30px',
-                boxShadow='2px 2px 5px #00000055',
-                marginLeft='50px',
-                marginRight='50px',
-                marginBottom='50px',
-                padding='50px',
-                **props,
-            )
-
 
 
 
@@ -93,7 +66,7 @@ class IndexState(rx.State):
 
 def index() -> rx.Component:
     return  rx.vstack(
-                Card(
+                u.Card(
                     rx.image(
                         src='https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fstatic.vecteezy.com%2Fsystem%2Fresources%2Fpreviews%2F001%2F105%2F389%2Fnon_2x%2Fwireframe-landscape-banner-design-vector.jpg&f=1&nofb=1&ipt=9ad5dcdd927b90069c7c272e9dba352aa9d53e9d0a434efa3d0eb793f7b79ab5&ipo=images',
                         width='100%',
@@ -116,13 +89,13 @@ def index() -> rx.Component:
                         rx.cond(IndexState.isButton1, 'Buy', 'Sell'),
                         size='4',
                         marginTop="2rem",
-                        color=rx.cond(IndexState.isButton1, primaryTextColor, secondaryTextColor),
-                        backgroundColor=rx.cond(IndexState.isButton1, primaryBackgroundColor, secondaryBackgroundColor),
+                        color=rx.cond(IndexState.isButton1, u.primaryTextColor, u.secondaryTextColor),
+                        backgroundColor=rx.cond(IndexState.isButton1, u.primaryBackgroundColor, u.secondaryBackgroundColor),
                         on_click=IndexState.stateTest1,
                     ),
                     marginTop='50px'
                 ),
-                Card(
+                u.Card(
                     rx.heading(
                         f"{Clock.value}s",
                         size='9',
@@ -133,18 +106,37 @@ def index() -> rx.Component:
                         rx.button(
                         'Stop',
                         size = '3',
-                        backgroundColor=secondaryBackgroundColor,
-                        color=secondaryTextColor,
-                        on_click=Clock.toggleClock
+                        backgroundColor=u.secondaryBackgroundColor,
+                        color=u.secondaryTextColor,
+                        on_click=Clock.toggleClock,
                         ),
                         rx.button(
                         'Start',
                         size = '3',
-                        backgroundColor=primaryBackgroundColor,
-                        color=primaryTextColor,
-                        on_click=Clock.toggleClock
+                        backgroundColor=u.primaryBackgroundColor,
+                        color=u.primaryTextColor,
+                        on_click=Clock.toggleClock,
                         ),
                     ),
+                ),
+                u.Card(
+                    rx.text(
+                        'Do you wanna start a \'bit of prompting?',
+                        size='8',
+                        weight='bold',
+                        paddingBottom="1rem",
+                        paddingTop="2rem",
+                    ),
+                    rx.link(
+                        rx.button(
+                            'Start prompting',
+                            size='4',
+                            marginTop="2rem",
+                            color=rx.cond(IndexState.isButton1, u.primaryTextColor, u.secondaryTextColor),
+                            backgroundColor=rx.cond(IndexState.isButton1, u.primaryBackgroundColor, u.secondaryBackgroundColor),
+                        ),
+                        href='/prompting'
+                    )
                 ),
                 opacity=f"{IndexState.percent}%",
                 on_mouse_leave=IndexState.updateOpacity(False),
@@ -165,4 +157,5 @@ app = rx.App(
         panel_background='translucent',
     )
 )
-app.add_page(index)
+app.add_page(index, '/')
+app.add_page(p.prompting, '/prompting')
